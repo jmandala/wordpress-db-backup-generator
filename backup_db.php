@@ -119,20 +119,6 @@ class wp_db_backup_generator {
 
     function read_config($path) {
 
-        /** @noinspection PhpIncludeInspection */
-        $parser = new wp_config_parser();
-        $results = $parser->parse($path);
-
-        return array('db_name' => $results['db_name'], 'db_password' => $results['db_password'], 'db_host' => $results['db_host'], 'db_user' => $results['db_user']);
-
-    }
-
-}
-
-class wp_config_parser {
-
-    static function parse( $path = null) {
-
         if (!$path) {
             $path = "config.php";
         }
@@ -145,41 +131,43 @@ class wp_config_parser {
         $path = $abs_path;
         $file_content = null;
 
-        if ( file_exists( $path ) && is_file( $path ) && is_readable( $path ) ) {
-            $file = @fopen( $path, 'r' );
-            $file_content = fread( $file, filesize( $path ) );
-            @fclose( $file );
+        if (file_exists($path) && is_file($path) && is_readable($path)) {
+            $file = @fopen($path, 'r');
+            $file_content = fread($file, filesize($path));
+            @fclose($file);
         }
 
-        $params = array();
+        $params = array('db_name' => '', 'db_password' => '', 'db_host' => '', 'db_user' => '');
 
-        preg_match_all( '/define\s*?\(\s*?([\'"])(DB_NAME|DB_USER|DB_PASSWORD|DB_HOST|DB_CHARSET)\1\s*?,\s*?([\'"])([^\3]*?)\3\s*?\)\s*?;/si', $file_content, $defines );
+        preg_match_all('/define\s*?\(\s*?([\'"])(DB_NAME|DB_USER|DB_PASSWORD|DB_HOST|DB_CHARSET)\1\s*?,\s*?([\'"])([^\3]*?)\3\s*?\)\s*?;/si', $file_content, $defines);
 
-        if ( ( isset( $defines[ 2 ] ) && ! empty( $defines[ 2 ] ) ) && ( isset( $defines[ 4 ] ) && ! empty( $defines[ 4 ] ) ) ) {
-            foreach( $defines[ 2 ] as $key => $define ) {
+        if ((isset($defines[2]) && !empty($defines[2])) && (isset($defines[4]) && !empty($defines[4]))) {
+            foreach ($defines[2] as $key => $define) {
 
-                switch( $define ) {
+                switch ($define) {
                     case 'DB_NAME':
-                        $params['db_name'] = $defines[ 4 ][ $key ];
+                        $params['db_name'] = $defines[4][$key];
 
                         break;
                     case 'DB_USER':
-                        $params['db_user'] = $defines[ 4 ][ $key ];
+                        $params['db_user'] = $defines[4][$key];
                         break;
                     case 'DB_PASSWORD':
-                        $params['db_password'] = $defines[ 4 ][ $key ];
+                        $params['db_password'] = $defines[4][$key];
                         break;
                     case 'DB_HOST':
-                        $params['db_host'] = $defines[ 4 ][ $key ];
+                        $params['db_host'] = $defines[4][$key];
                         break;
                     case 'DB_CHARSET':
-                        $params['db_charset']  = $defines[ 4 ][ $key ];
+                        $params['db_charset'] = $defines[4][$key];
                         break;
                 }
             }
         }
 
+
         return $params;
+
     }
 
 }
